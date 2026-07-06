@@ -2,14 +2,16 @@ import os
 import time
 import subprocess
 import threading
-import socket
+import asyncio
+import json
 import discord
 import board
 import adafruit_dht
 from pathlib import Path
-from discord.ext import commands
+from discord.ext import commands, tasks
 from samsungtvws import SamsungTVWS
 from samsungtvws.exceptions import UnauthorizedError
+from mcstatus import JavaServer
 
 DS_TOKEN = os.getenv("DISCORD_TOKEN")
 
@@ -20,8 +22,11 @@ intents.members = True
 bot = commands.Bot(command_prefix="!", intents=intents)
 
 BASE_DIR = Path(__file__).parent
+STATE_FILE = Path("/app/data/state.json")
 
+mc_task = None
 mc_process = None
+mc_start_time = None
 
 # initialize sensors
 dht = adafruit_dht.DHT11(board.D4)
@@ -56,10 +61,41 @@ def sensor_loop():
 threading.Thread(target=sensor_loop, daemon=True).start()
 
 
+def format_uptime(seconds):
+    h = seconds // 3600
+    m = (seconds % 3600) // 60
+    return f"{h}h{m}m"
+
+def load_state():
+    try:
+        if STATE_FILE.exists():
+            with open(STATE_FILE, "r") as f:
+                return json.load(f)
+    except:
+        pass
+    return {}
+
+def save_state(data):
+    STATE_FILE.parent.mkdir(parents=True, exist_ok=True)
+
+    with open(STATE_FILE, "w") as f:
+        json.dump(data, f, indent=4)
+
+
+state = load_state()
+mc_status_message_id = state.get("mc_status_message_id")
+
 # Discord bot
 @bot.event
 async def on_ready():
+    global mc_task
     print(f"Logged in as {bot.user}")
+
+    if mc_task is None:
+        mc_task = asyncio.create_task(update_mc_channel())
+
+    if not mc_embed_loop.is_running():
+        mc_embed_loop.start()
 
 @bot.event
 async def on_member_join(member):
@@ -180,9 +216,122 @@ async def tv(ctx, action: str):
         print(e)
         await ctx.reply(f"❌ Error: {e}")
 
+def create_mc_embed():
+    server = JavaServer.lookup("localhost:25565")
+
+    try:
+        status = server.status()
+        online = status.players.online
+        max_players = status.players.max
+        ping = round(status.latency)
+        state = "🟢 Online"
+        color = 0x00ff00
+    except:
+        online = 0
+        max_players = 0
+        ping = "N/A"
+        state = "🔴 Offline"
+        color = 0xff0000
+    
+    try:
+        uptime_seconds = int(time.time() - mc_start_time)
+        h = uptime_seconds // 3600
+        m = (uptime_seconds % 3600) // 60
+        uptime = f"{h}h {m}m"
+    except:
+        uptime = "N/A"
+    
+    embed = discord.Embed(
+        title="📡 Minecraft Server Status",
+        description="Live dashboard ⚡",
+        color=color
+    )
+
+    embed.add_field(name="Status", value=state, inline=True)
+    embed.add_field(name="Player", value=f"{online}/{max_players}", inline=True)
+    embed.add_field(name="Ping", value=f"{ping} ms", inline=True)
+
+    embed.add_field(name="Uptime", value=uptime, inline=True)
+    embed.add_field(name="IP", value="localhost:25565", inline=True)
+    embed.add_field(name="Update", value="every 60s", inline=True)
+
+    embed.set_footer(text="MC Dashboard Bot 🤖")
+
+    return embed
+
+@tasks.loop(seconds=60)
+async def mc_embed_loop():
+    global mc_status_message_id
+
+    channel_id = int(os.getenv("MC_INFO_CHANNEL_ID"))
+    channel = bot.get_channel(channel_id)
+
+    if channel is None:
+        return
+
+    embed = create_mc_embed()
+
+    if mc_status_message_id is None:
+        msg = await channel.send(embed=embed)
+        mc_status_message_id = msg.id
+
+        state = load_state()
+        state["mc_status_message_id"] = mc_status_message_id
+        save_state(state)
+    else:
+        try:
+            msg = await channel.fetch_message(mc_status_message_id)
+            await msg.edit(embed=embed)
+        except discord.NotFound:
+            msg = await channel.send(embed=embed)
+            mc_status_message_id = msg.id
+
+            state = load_state()
+            state["mc_status_message_id"] = mc_status_message_id
+            save_state(state)
+
+        except discord.HTTPException as e:
+            print(f"Discord error: {e}")
+
+async def update_mc_channel():
+    await bot.wait_until_ready()
+
+    channel_id = int(os.getenv("MC_STATUS_CHANNEL_ID"))
+    channel = bot.get_channel(channel_id)
+
+    server = JavaServer.lookup("localhost:25565")
+
+    last_state = None
+
+    while not bot.is_closed():
+        try:
+            status = server.status()
+            online = status.players.online
+            max_players = status.players.max
+            print(status.description)
+            print(status.icon)
+            print(status.version.name)
+            print(status.latency)
+            print(status.raw)
+
+            state = f"🟢│Online"
+
+        except Exception:
+            state = "🔴│Offline"
+
+        if state != last_state:
+            last_state = state
+            try:
+                await channel.edit(name=state)
+            except discord.HTTPException as e:
+                if e.status == 429:
+                    await asyncio.sleep(60)
+
+        await asyncio.sleep(60)
+
 @bot.command()
 async def mc(ctx, action: str = None):
-    global mc_process
+    global mc_process, mc_start_time
 
     if action is None:
         await ctx.reply("❌ No argument provided. Use: !mc start - !mc stop - !mc status")
@@ -226,6 +375,8 @@ async def mc(ctx, action: str = None):
             stdin=subprocess.PIPE,
             text=True
         )
+
+        mc_start_time = time.time()
 
         if eula_file_exists:
             await ctx.reply("🟢 Server started!")
