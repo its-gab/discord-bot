@@ -1,55 +1,171 @@
-import os, time, discord, board # type: ignore
-import adafruit_dht # type: ignore
-from discord.ext import commands # type: ignore
+import os
+import time
+import threading
+import discord
+import board
+import adafruit_dht
+from discord.ext import commands
+from samsungtvws import SamsungTVWS
 
-TOKEN = os.getenv("DISCORD_TOKEN")
+DS_TOKEN = os.getenv("DISCORD_TOKEN")
 
 intents = discord.Intents.default()
 intents.message_content = True
+intents.members = True
 
-bot = commands.Bot(command_prefix="/", intents=intents)
-
-@bot.event
-async def on_ready():
-    print(f"Connesso come {bot.user}")
-
-@bot.command()
-async def ciao(ctx):
-    await ctx.send(f"Ciao {ctx.author.mention}! 👋")
-
-@bot.command()
-async def say(ctx, *, msg):
-    await ctx.send(msg)
+bot = commands.Bot(command_prefix="!", intents=intents)
 
 
+# initialize sensors
 dht = adafruit_dht.DHT11(board.D4)
 
-last_temp = None
-last_hum = None
-last_time = 0
+sensor_data = {
+    "temp": None,
+    "hum": None
+}
+
+# Sensor loop (thread)
+def sensor_loop():
+    global sensor_data
+
+    while True:
+        try:
+            temp = dht.temperature
+            hum = dht.humidity
+
+            if temp is not None and hum is not None:
+                sensor_data["temp"] = temp
+                sensor_data["hum"] = hum
+
+                print(f"[SENSOR] {temp}°C {hum}%")
+
+        except Exception as e:
+            print("[SENSOR ERROR]", e)
+
+        time.sleep(5)
+
+
+# Start sensor thread
+threading.Thread(target=sensor_loop, daemon=True).start()
+
+
+# Discord bot
+@bot.event
+async def on_ready():
+    print(f"Logged in as {bot.user}")
+
+@bot.event
+async def on_member_join(member):
+    channel_id = int(os.getenv("WELCOME_CHANNEL_ID"))
+    channel = bot.get_channel(channel_id)
+
+    if channel:
+        embed = discord.Embed(
+            title="🎉 Welcome!",
+            description=f"Hello {member.mention}, welcome to the server! 😄",
+            color=0x00ffcc
+        )
+
+        embed.set_thumbnail(url=member.avatar.url if member.avatar else None)
+        embed.set_footer(text=f"User #{member.guild.member_count}")
+
+        await channel.send(embed=embed)
+
+    # Give the new member a role
+    role = discord.utils.get(member.guild.roles, name=os.getenv("NEW_MEMBER_ROLE"))
+    if role:
+        await member.add_roles(role)
+
+
+@bot.command()
+async def hello(ctx):
+    await ctx.reply("Hello! 👋", mention_author=False)
+
+@bot.command()
+async def clear(ctx, amount: int = 5):
+    await ctx.message.delete()
+    await ctx.channel.purge(limit=amount + 1)
+
+@bot.command()
+async def ping(ctx):
+    message = await ctx.send("🏓 Ping...")
+    latency = round(bot.latency * 1000)
+    await message.edit(content=f"🏓 Pong! {latency}ms")
+
 
 @bot.command()
 async def temp(ctx):
-    global last_temp, last_hum, last_time
+    temp = sensor_data["temp"]
+    hum = sensor_data["hum"]
 
-    if time.time() - last_time < 5 and last_temp is not None:
-        await ctx.send(
-            f"🌡️ {last_temp:.1f} °C\n"
-            f"💧 {last_hum:.0f}% (cached)"
-        )
+    if temp is None:
+        await ctx.send("⚠️ Sensor not ready")
         return
 
+    embed = discord.Embed(
+        title="House Sensor",
+        color=discord.Color.blue(),
+        timestamp=discord.utils.utcnow()
+    )
+
+    embed.add_field(name="🌡️ Temperature", value=f"{temp:.1f} °C", inline=True)
+    embed.add_field(name="💧 Humidity", value=f"{hum:.1f} %", inline=True)
+
+    # 🔥 stato qualità
+    if temp < 18:
+        status = "❄️ Cold"
+    elif temp < 26:
+        status = "🙂 Normal"
+    else:
+        status = "🔥 Hot"
+
+    embed.add_field(name="📊 Status", value=status, inline=False)
+
+    embed.set_footer(text="Raspberry Pi Temperature Sensor")
+    embed.set_thumbnail(url="https://cdn-icons-png.flaticon.com/512/728/728093.png")
+
+    await ctx.reply(embed=embed, mention_author=False)
+
+
+
+
+@bot.command()
+async def tv(ctx, action: str):
     try:
-        last_temp = dht.temperature
-        last_hum = dht.humidity
-        last_time = time.time()
-
-        await ctx.send(
-            f"🌡️ {last_temp:.1f} °C\n"
-            f"💧 {last_hum:.0f}%"
+        samsungtv = SamsungTVWS(
+            host=os.getenv("TV_IP"),
+            port=8002,
+            token_file="token_file.txt"
         )
-    except RuntimeError as E:
-        await ctx.send(str(E))
-    
 
-bot.run(TOKEN)
+        status = samsungtv.rest_device_info()["device"]["PowerState"]
+
+        if action == "status":
+            await ctx.reply("📺 TV is " + action + "!")
+        return
+
+        if not status:
+            await ctx.reply("❌ TV not connected.")
+            return
+
+        if status != "on":
+            status = "off"
+
+        # await ctx.message.delete()
+        action = action.lower()
+        if action == status:
+            await ctx.reply("⚠️ TV already " + status + "!")
+
+        elif action == "off" or action == "on":
+            samsungtv.send_key("KEY_POWER")
+            await ctx.reply("📺 TV " + action + "!")
+
+        else:
+            await ctx.reply("❌ Use: !tv on - !tv off")
+            return
+    except UnauthorizedError:
+        await ctx.reply("❌ TV not authorized.")
+    except BrokenPipeError:
+        await ctx.reply("❌ Connection with the TV interrupted.")
+
+bot.run(DS_TOKEN)
