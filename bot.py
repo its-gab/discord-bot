@@ -6,6 +6,7 @@ import board
 import adafruit_dht
 from discord.ext import commands
 from samsungtvws import SamsungTVWS
+from samsungtvws.exceptions import UnauthorizedError
 
 DS_TOKEN = os.getenv("DISCORD_TOKEN")
 
@@ -72,14 +73,17 @@ async def on_member_join(member):
         await channel.send(embed=embed)
 
     # Give the new member a role
-    role = discord.utils.get(member.guild.roles, name=os.getenv("NEW_MEMBER_ROLE"))
-    if role:
-        await member.add_roles(role)
+    role_id = os.getenv("NEW_MEMBER_ROLE_ID")
+
+    if role_id:
+        role = member.guild.get_role(int(role_id))
+        if role:
+            await member.add_roles(role)
 
 
 @bot.command()
 async def hello(ctx):
-    await ctx.reply("Hello! 👋", mention_author=False)
+    await ctx.reply(f"Hello {ctx.author.mention}!👋",)
 
 @bot.command()
 async def clear(ctx, amount: int = 5):
@@ -138,21 +142,20 @@ async def tv(ctx, action: str):
             token_file="token_file.txt"
         )
 
+        action = action.lower()
         status = samsungtv.rest_device_info()["device"]["PowerState"]
-
-        if action == "status":
-            await ctx.reply("📺 TV is " + action + "!")
-        return
 
         if not status:
             await ctx.reply("❌ TV not connected.")
             return
-
+        
         if status != "on":
             status = "off"
 
-        # await ctx.message.delete()
-        action = action.lower()
+        if action == "status":
+            await ctx.reply("📺 TV is " + status + "!")
+            return
+            
         if action == status:
             await ctx.reply("⚠️ TV already " + status + "!")
 
@@ -167,5 +170,8 @@ async def tv(ctx, action: str):
         await ctx.reply("❌ TV not authorized.")
     except BrokenPipeError:
         await ctx.reply("❌ Connection with the TV interrupted.")
+    except Exception as e:
+        print(e)
+        await ctx.reply(f"❌ Error: {e}")
 
 bot.run(DS_TOKEN)
