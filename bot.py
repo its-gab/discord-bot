@@ -208,17 +208,57 @@ async def mc(ctx, action: str = None):
         if not mc_start_script.exists():
             await ctx.reply("❌ start.sh not found.")
             return
-    
+        
+        mc_eula_file = mc_folder / "eula.txt"
+        eula_file_exists = mc_eula_file.exists()
+
+        if eula_file_exists:
+            with open(mc_eula_file, "r") as f:
+                content = f.read()
+
+            if "eula=false" in content:
+                await ctx.reply("❌ EULA not accepted. Please accept the EULA by using !mc eula, then start the server again.")
+                return
+        
         mc_process = subprocess.Popen(
             ["bash", str(mc_start_script)],
             cwd=mc_folder,
             stdin=subprocess.PIPE,
             text=True
         )
-        await ctx.reply("🟢 Server started!")
+
+        if eula_file_exists:
+            await ctx.reply("🟢 Server started!")
+        else:
+            await ctx.reply("🟢 Server installed! Please accept the EULA by using !mc eula, then start the server again.")
+    elif action == "eula":
+        mc_eula_file = mc_folder / "eula.txt"
+
+        if not mc_eula_file.exists():
+            await ctx.reply("❌ eula.txt not found. Install the server first using !mc start.")
+            return
+
+        with open(mc_eula_file, "r") as f:
+            content = f.read()
+
+        if "eula=true" in content:
+            await ctx.reply("✅ EULA already accepted.")
+            return
+
+        with open(mc_eula_file, "w") as f:
+            f.write("eula=true\n")
+
+        await ctx.reply("✅ EULA accepted! You can now start the server using !mc start.")
 
 
     elif action == "stop":
+        mc_server_jar = mc_folder / "server.jar"
+        
+        if not mc_server_jar.exists():
+            await ctx.reply("❌ server.jar not found. Download it from the official Minecraft website "
+            "(https://www.minecraft.net/en-us/download/server) and place it in the 'minecraft' folder.")
+            return
+
         if mc_process is None or mc_process.poll() is not None:
             await ctx.reply("⚠️ Server is already offline!")
             return
