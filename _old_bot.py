@@ -6,7 +6,7 @@ import asyncio
 import json
 import discord
 import board
-import adafruit_dht
+import adafruit_dht # type: ignore
 from pathlib import Path
 from discord.ext import commands, tasks
 from samsungtvws import SamsungTVWS
@@ -85,6 +85,7 @@ def save_state(data):
 state = load_state()
 mc_status_message_id = state.get("mc_status_message_id")
 
+''' 
 # Discord bot
 @bot.event
 async def on_ready():
@@ -96,6 +97,7 @@ async def on_ready():
 
     if not mc_embed_loop.is_running():
         mc_embed_loop.start()
+
 
 @bot.event
 async def on_member_join(member):
@@ -121,7 +123,7 @@ async def on_member_join(member):
         role = member.guild.get_role(int(role_id))
         if role:
             await member.add_roles(role)
-
+'''
 
 @bot.command()
 async def hello(ctx):

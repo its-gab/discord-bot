@@ -3,3 +3,4 @@ adafruit-blinka
 adafruit-circuitpython-dht
 lgpio
 samsungtvws
+mcstatus
