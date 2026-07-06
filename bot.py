@@ -1,9 +1,12 @@
 import os
 import time
+import subprocess
 import threading
+import socket
 import discord
 import board
 import adafruit_dht
+from pathlib import Path
 from discord.ext import commands
 from samsungtvws import SamsungTVWS
 from samsungtvws.exceptions import UnauthorizedError
@@ -17,7 +20,8 @@ intents.members = True
 bot = commands.Bot(command_prefix="!", intents=intents)
 
 BASE_DIR = Path(__file__).parent
-start_mc_script = BASE_DIR / "start_mc.sh"
+
+mc_process = None
 
 # initialize sensors
 dht = adafruit_dht.DHT11(board.D4)
@@ -177,12 +181,62 @@ async def tv(ctx, action: str):
         await ctx.reply(f"❌ Error: {e}")
 
 @bot.command()
-async def mc(ctx, action: str):
-    if action == "start": 
-        subprocess.Popen(
-            ["bash", str(start_mc_script)],
-            cwd=os.getenv("MC_FOLDER")
+async def mc(ctx, action: str = None):
+    global mc_process
+
+    if action is None:
+        await ctx.reply("❌ No argument provided. Use: !mc start - !mc stop - !mc status")
+        return
+    
+    action = action.lower()
+
+    mc_folder = BASE_DIR / "minecraft"
+
+    if action == "start":
+        if mc_process and mc_process.poll() is None:
+            await ctx.reply("⚠️ Server is already online!")
+            return
+
+        mc_server_jar = mc_folder / "server.jar"
+        mc_start_script = mc_folder / "start.sh"
+
+        if not mc_server_jar.exists():
+            await ctx.reply("❌ server.jar not found. Download it from the official Minecraft website "
+            "(https://www.minecraft.net/en-us/download/server) and place it in the 'minecraft' folder.")
+            return
+
+        if not mc_start_script.exists():
+            await ctx.reply("❌ start.sh not found.")
+            return
+    
+        mc_process = subprocess.Popen(
+            ["bash", str(mc_start_script)],
+            cwd=mc_folder,
+            stdin=subprocess.PIPE,
+            text=True
         )
-        await ctx.reply("🟢 Server avviato!")
+        await ctx.reply("🟢 Server started!")
+
+
+    elif action == "stop":
+        if mc_process is None or mc_process.poll() is not None:
+            await ctx.reply("⚠️ Server is already offline!")
+            return
+
+        try:
+            mc_process.stdin.write("stop\n")
+            mc_process.stdin.flush()
+        except Exception:
+            mc_process.terminate()
+
+        mc_process = None
+        await ctx.reply("🔴 Server stopped!")
+
+
+    elif action == "status":
+        if mc_process and mc_process.poll() is None:
+            await ctx.reply("🟢 Server is online")
+        else:
+            await ctx.reply("🔴 Server is offline")
 
 bot.run(DS_TOKEN)

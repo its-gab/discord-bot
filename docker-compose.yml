@@ -8,5 +8,4 @@ services:
       - WELCOME_CHANNEL_ID=CHANNEL_ID
       - NEW_MEMBER_ROLE_ID=ROLE_ID
       - TV_IP=YOUR_SAMSUNG_TV_IP
-      - MC_FOLDER=PATH_TO_MC_FOLDER
     privileged: true
