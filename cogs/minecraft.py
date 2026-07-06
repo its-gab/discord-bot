@@ -1,6 +1,6 @@
 from discord.ext import commands
 
-from services.minecraft import start_server, stop_server, restart_server, accept_eula
+from services.minecraft import start_server, stop_server, restart_server, server_status, accept_eula
 
 class Minecraft(commands.Cog):
 
@@ -24,7 +24,7 @@ class Minecraft(commands.Cog):
         elif action == "eula":
             await ctx.reply(accept_eula())
         elif action == "status":
-            await ctx.reply("Checking Minecraft server status...")
+            await ctx.reply(server_status())
         else:
             await ctx.reply("❌ Invalid argument. Use: !mc start - !mc stop - !mc restart - !mc eula - !mc status")
 
