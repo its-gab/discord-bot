@@ -114,4 +114,4 @@ discord-bot/
 
 ## 📄 License
 
-No license specified yet — all rights reserved by default. Add a `LICENSE` file if you want to allow reuse.
+This project is licensed under the [MIT License](LICENSE).
