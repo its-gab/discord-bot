@@ -16,6 +16,8 @@ intents.members = True
 
 bot = commands.Bot(command_prefix="!", intents=intents)
 
+BASE_DIR = Path(__file__).parent
+start_mc_script = BASE_DIR / "start_mc.sh"
 
 # initialize sensors
 dht = adafruit_dht.DHT11(board.D4)
@@ -173,5 +175,14 @@ async def tv(ctx, action: str):
     except Exception as e:
         print(e)
         await ctx.reply(f"❌ Error: {e}")
+
+@bot.command()
+async def mc(ctx, action: str):
+    if action == "start": 
+        subprocess.Popen(
+            ["bash", str(start_mc_script)],
+            cwd=os.getenv("MC_FOLDER")
+        )
+        await ctx.reply("🟢 Server avviato!")
 
 bot.run(DS_TOKEN)
