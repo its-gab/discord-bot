@@ -1,1 +1,5 @@
 discord.py
+adafruit-blinka
+adafruit-circuitpython-dht
+lgpio
+samsungtvws
