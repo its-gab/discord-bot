@@ -2,6 +2,7 @@ import time
 import discord
 from mcstatus import JavaServer
 
+from utils.formatter import format_uptime
 from services.minecraft import mc_start_time
 
 def create_mc_embed():
@@ -23,9 +24,7 @@ def create_mc_embed():
 
     try:
         uptime_seconds = int(time.time() - mc_start_time)
-        h = uptime_seconds // 3600
-        m = (uptime_seconds % 3600) // 60
-        uptime = f"{h}h {m}m"
+        uptime = format_uptime(uptime_seconds)
     except:
         uptime = "N/A"
 
