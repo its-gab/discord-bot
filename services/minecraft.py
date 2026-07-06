@@ -23,7 +23,8 @@ def start_server():
     mc_start_script = mc_folder / "start.sh"
 
     if not mc_server_jar.exists():
-        return "❌ server.jar not found"
+        return "❌ server.jar not found. Download it from the official Minecraft website " \
+        "(https://www.minecraft.net/en-us/download/server) and place it in the 'minecraft' folder."
 
     if not mc_start_script.exists():
         return "❌ start.sh not found"
@@ -33,7 +34,7 @@ def start_server():
     if mc_eula_file.exists():
         content = mc_eula_file.read_text()
         if "eula=false" in content:
-            return "❌ EULA not accepted"
+            return "❌ EULA not accepted, please run '!mc eula' first."
 
     mc_process = subprocess.Popen(
         ["bash", str(mc_start_script)],
@@ -53,7 +54,8 @@ def stop_server():
     mc_server_jar = mc_folder / "server.jar"
 
     if not mc_server_jar.exists():
-        return "❌ server.jar not found"
+        return "❌ server.jar not found. Download it from the official Minecraft website " \
+        "(https://www.minecraft.net/en-us/download/server) and place it in the 'minecraft' folder."
 
     if mc_process is None or mc_process.poll() is not None:
         return "⚠️ Server is already offline!"
@@ -74,9 +76,9 @@ def stop_server():
 
 def server_status():
     if mc_process and mc_process.poll() is None:
-        return "🟢 Server is online"
+        return "🟢 Server is online."
     else:
-        return "🔴 Server is offline"
+        return "🔴 Server is offline."
 
 
 def restart_server():
@@ -89,12 +91,12 @@ def accept_eula():
     mc_eula_file = mc_folder / "eula.txt"
 
     if not mc_eula_file.exists():
-        return "❌ eula.txt not found"
+        return "❌ eula.txt not found. Please run the server once to generate it."
 
     content = mc_eula_file.read_text()
 
     if "eula=true" in content:
-        return "✅ EULA already accepted"
+        return "✅ EULA already accepted."
 
     mc_eula_file.write_text("eula=true\n")
 
