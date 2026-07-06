@@ -1,6 +1,6 @@
 from discord.ext import commands
 
-from services.minecraft import start_server, stop_server, restart_server
+from services.minecraft import start_server, stop_server, restart_server, accept_eula
 
 class Minecraft(commands.Cog):
 
@@ -10,7 +10,7 @@ class Minecraft(commands.Cog):
     @commands.command()
     async def mc(self, ctx, action: str = None):
         if action is None:
-            await ctx.reply("❌ No argument provided. Use: !mc start - !mc stop - !mc status")
+            await ctx.reply("❌ No argument provided. Use: !mc start - !mc stop - !mc restart - !mc eula - !mc status")
             return
 
         action = action.lower()
@@ -19,10 +19,14 @@ class Minecraft(commands.Cog):
             await ctx.reply(start_server())
         elif action == "stop":
             await ctx.reply(stop_server())
+        elif action == "restart":
+            await ctx.reply(restart_server())
+        elif action == "eula":
+            await ctx.reply(accept_eula())
         elif action == "status":
             await ctx.reply("Checking Minecraft server status...")
         else:
-            await ctx.reply("❌ Invalid argument. Use: !mc start - !mc stop - !mc status")
+            await ctx.reply("❌ Invalid argument. Use: !mc start - !mc stop - !mc restart - !mc eula - !mc status")
 
 
 # Setup

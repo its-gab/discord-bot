@@ -30,8 +30,9 @@ def start_server():
         return "❌ start.sh not found"
 
     mc_eula_file = mc_folder / "eula.txt"
+    eula_exist = mc_eula_file.exists()
 
-    if mc_eula_file.exists():
+    if eula_exist:
         content = mc_eula_file.read_text()
         if "eula=false" in content:
             return "❌ EULA not accepted, please run '!mc eula' first."
@@ -43,9 +44,11 @@ def start_server():
         text=True
     )
 
-    mc_start_time = time.time()
-
-    return "🟢 Server started!"
+    if eula_exist:
+        mc_start_time = time.time()
+        return "🟢 Server started!"
+    else:
+        return "🟡 Please run '!mc eula' and start the server"
 
 
 def stop_server():
