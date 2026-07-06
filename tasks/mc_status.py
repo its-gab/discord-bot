@@ -1,21 +1,17 @@
 import os
 import asyncio
 import discord
-from discord.ext import tasks
+from discord.ext import commands, tasks
 from mcstatus import JavaServer
 
 
-class MCStatusTask:
+class MCStatusTask(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.server = JavaServer.lookup("localhost:25565")
         self.last_state = None
 
-        try:
-            self.loop_mc_status.start()
-            print("✅ MCStatusTask started successfully")
-        except Exception as e:
-            print(f"❌ MCStatusTask failed: {e}")
+        self.loop_mc_status.start()
 
     @tasks.loop(seconds=60)
     async def loop_mc_status(self):
@@ -40,5 +36,8 @@ class MCStatusTask:
 
             except discord.HTTPException as e:
                 if e.status == 429:
-                    print("Rate limited, retry later")
+                    print("⚠️ Rate limited, retry later")
                     await asyncio.sleep(60)
+
+async def setup(bot):
+    await bot.add_cog(MCStatusTask(bot))

@@ -1,20 +1,15 @@
 import os
 import discord
-from discord import tasks
+from discord.ext import commands, tasks
 
 from config import STATE_FILE
 from utils.save import load_json, save_json
 from services.mc_embed import create_mc_embed
 
-class MCEmbedTask:
+class MCEmbedTask(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-
-        try:
-            self.loop_mc_embed.start()
-            print("✅ MCEmbedTask started successfully")
-        except Exception as e:
-            print(f"❌ MCEmbedTask failed: {e}")
+        self.loop_mc_embed.start()
 
     @tasks.loop(seconds=60)
     async def loop_mc_embed(self):
@@ -38,3 +33,6 @@ class MCEmbedTask:
             msg = await channel.send(embed=embed)
             state["mc_status_message_id"] = msg.id
             save_json(STATE_FILE, state)
+        
+async def setup(bot):
+    await bot.add_cog(MCEmbedTask(bot))

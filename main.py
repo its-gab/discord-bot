@@ -2,7 +2,7 @@ import asyncio
 
 from config import bot, DS_TOKEN
 
-EXTENSIONS = (
+COGS = (
     "cogs.admin",
     "cogs.events",
     "cogs.general",
@@ -12,19 +12,31 @@ EXTENSIONS = (
     "cogs.tv",
 )
 
+TASKS = (
+    "tasks.mc_embed",
+    "tasks.mc_status",
+)
+
+
 async def main():
     async with bot:
         print("📜 Loading modules...")
-        for extension in EXTENSIONS:
+        for cog in COGS:
             try:
-                await bot.load_extension(extension)
-                print(f"✅ Loaded: {extension}")
+                await bot.load_extension(cog)
+                print(f"✅ Loaded {cog}")
             except Exception as e:
-                print(f"❌ Error loading module {extension}: {e}")
+                print(f"❌ Error loading {cog}: {e}")
         print("✅ Modules loaded!")
 
         print("📦 Loading tasks...")
-        await bot.load_extension("cogs.tasks")
+
+        for task in TASKS:
+            try:
+                await bot.load_extension(task)
+                print(f"✅ Loaded {task}")
+            except Exception as e:
+                print(f"❌ Error loading {task}: {e}")
         print("✅ Tasks loaded!")
 
         print("🚀 Bot starting...")
