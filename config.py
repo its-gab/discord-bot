@@ -1,9 +1,12 @@
 import os
+import time
 import discord
 from discord.ext import commands
 from pathlib import Path
 
 DS_TOKEN = os.getenv("DISCORD_TOKEN")
+
+BOT_START_TIME = time.time()
 
 BASE_DIR = Path(__file__).parent
 STATE_FILE = BASE_DIR / "data" / "state.json"
