@@ -8,6 +8,7 @@ COGS = (
     "cogs.general",
     "cogs.minecraft",
     "cogs.sensors",
+    "cogs.server"
     "cogs.test",
     "cogs.tv",
 )
