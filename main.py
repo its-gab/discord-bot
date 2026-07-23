@@ -5,6 +5,7 @@ from config import bot, DS_TOKEN
 COGS = (
     "cogs.admin",
     "cogs.events",
+    "cogs.fuel"
     "cogs.general",
     "cogs.minecraft",
     "cogs.sensors",
