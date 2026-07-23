@@ -25,7 +25,7 @@ class General(commands.Cog):
     @commands.command()
     async def uptime(self, ctx):
         bot_uptime = int(time.time() - BOT_START_TIME)
-        await ctx.reply(f"Uptime: {format_uptime(bot_uptime)}")
+        await ctx.reply(f"Bot uptime: {format_uptime(bot_uptime)}")
 
 
 # Setup
