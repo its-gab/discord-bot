@@ -2,6 +2,8 @@ discord.py
 adafruit-blinka
 adafruit-circuitpython-dht
 lgpio
+pandas
+geopy
 samsungtvws
 psutil
 mcstatus
