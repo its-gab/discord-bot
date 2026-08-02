@@ -1,60 +1,57 @@
 import os
+import asyncio
 import discord
 
 from discord.ext import commands, tasks
-
-from config import STATE_FILE
-from utils.save import load_json, save_json
-from services.mc_embed import create_mc_embed
+from mcstatus import JavaServer
 
 
-class MCEmbedTask(commands.Cog):
+class MinecraftStatusTask(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        self.loop_mc_embed.start()
+        self.server = JavaServer.lookup("localhost:25565")
+        self.last_state = None
+
+        self.loop_minecraft_status.start()
 
 
-    async def update_mc_embed(self):
-        channel_id = int(os.getenv("MC_INFO_CHANNEL_ID"))
+    async def update_minecraft_status(self):
+        channel_id = int(os.getenv("MC_STATUS_CHANNEL_ID"))
 
         channel = self.bot.get_channel(channel_id)
         if channel is None:
             channel = await self.bot.fetch_channel(channel_id)
 
-        embed = create_mc_embed()
+        try:
+            self.server.status()
+            state = "🟢│Online"
 
-        state = load_json(STATE_FILE)
-        message_id = state.get("mc_status_message_id")
+        except Exception:
+            state = "🔴│Offline"
 
 
-        if message_id:
+        if state != self.last_state:
+            self.last_state = state
+
             try:
-                msg = await channel.fetch_message(message_id)
-                await msg.edit(embed=embed)
-                return
+                await channel.edit(name=state)
 
-            except discord.NotFound:
-                pass
-
-
-        msg = await channel.send(embed=embed)
-
-        state["mc_status_message_id"] = msg.id
-        save_json(STATE_FILE, state)
-
+            except discord.HTTPException as e:
+                if e.status == 429:
+                    print("⚠️ Rate limited, retry later")
+                    await asyncio.sleep(60)
 
 
     @tasks.loop(seconds=60)
-    async def loop_mc_embed(self):
-        await self.update_mc_embed()
+    async def loop_minecraft_status(self):
+        await self.update_minecraft_status()
 
 
-    @loop_mc_embed.before_loop
+    @loop_minecraft_status.before_loop
     async def before_loop(self):
         await self.bot.wait_until_ready()
-        await self.update_mc_embed()
-
+        await self.update_minecraft_status()
 
 
 async def setup(bot):
-    await bot.add_cog(MCEmbedTask(bot))
+    await bot.add_cog(MinecraftStatusTask(bot))
