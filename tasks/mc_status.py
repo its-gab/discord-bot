@@ -1,43 +1,60 @@
 import os
-import asyncio
 import discord
+
 from discord.ext import commands, tasks
-from mcstatus import JavaServer
+
+from config import STATE_FILE
+from utils.save import load_json, save_json
+from services.mc_embed import create_mc_embed
 
 
-class MCStatusTask(commands.Cog):
+class MCEmbedTask(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        self.server = JavaServer.lookup("localhost:25565")
-        self.last_state = None
+        self.loop_mc_embed.start()
 
-        self.loop_mc_status.start()
 
-    @tasks.loop(seconds=60)
-    async def loop_mc_status(self):
-
-        channel_id = int(os.getenv("MC_STATUS_CHANNEL_ID"))
+    async def update_mc_embed(self):
+        channel_id = int(os.getenv("MC_INFO_CHANNEL_ID"))
 
         channel = self.bot.get_channel(channel_id)
         if channel is None:
             channel = await self.bot.fetch_channel(channel_id)
 
-        try:
-            self.server.status()
-            state = "🟢│Online"
-        except Exception:
-            state = "🔴│Offline"
+        embed = create_mc_embed()
 
-        if state != self.last_state:
-            self.last_state = state
+        state = load_json(STATE_FILE)
+        message_id = state.get("mc_status_message_id")
 
+
+        if message_id:
             try:
-                await channel.edit(name=state)
+                msg = await channel.fetch_message(message_id)
+                await msg.edit(embed=embed)
+                return
 
-            except discord.HTTPException as e:
-                if e.status == 429:
-                    print("⚠️ Rate limited, retry later")
-                    await asyncio.sleep(60)
+            except discord.NotFound:
+                pass
+
+
+        msg = await channel.send(embed=embed)
+
+        state["mc_status_message_id"] = msg.id
+        save_json(STATE_FILE, state)
+
+
+
+    @tasks.loop(seconds=60)
+    async def loop_mc_embed(self):
+        await self.update_mc_embed()
+
+
+    @loop_mc_embed.before_loop
+    async def before_loop(self):
+        await self.bot.wait_until_ready()
+        await self.update_mc_embed()
+
+
 
 async def setup(bot):
-    await bot.add_cog(MCStatusTask(bot))
+    await bot.add_cog(MCEmbedTask(bot))
