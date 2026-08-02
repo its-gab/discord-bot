@@ -5,11 +5,12 @@ from config import bot, DS_TOKEN
 COGS = (
     "cogs.admin",
     "cogs.events",
-    "cogs.fuel"
+    "cogs.fuel",
     "cogs.general",
     "cogs.minecraft",
     "cogs.sensors",
-    "cogs.server"
+    "cogs.server",
+    "cogs.steam",
     "cogs.test",
     "cogs.tv",
 )
@@ -17,6 +18,7 @@ COGS = (
 TASKS = (
     "tasks.mc_embed",
     "tasks.mc_status",
+    "tasks.steam_wishlist",
 )
 
 
