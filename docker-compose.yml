@@ -17,6 +17,8 @@ services:
       - STEAM_WISHLIST_CHANNEL_ID=123456789
 
       - NEW_MEMBER_ROLE_ID=123456789
+
+      - STEAM_ID=YOUR_STEAM_ID
       
       - TV_IP=YOUR_SAMSUNG_TV_IP
     privileged: true

@@ -1,5 +1,6 @@
 import os
 import discord
+import asyncio
 from discord.ext import commands, tasks
 
 from services.steam import get_wishlist_discounts
@@ -14,6 +15,7 @@ class SteamWishlistTask(commands.Cog):
 
     async def update_wishlist(self):
         channel_id = int(os.getenv("STEAM_WISHLIST_CHANNEL_ID"))
+        steam_id = os.getenv("STEAM_ID")
 
         channel = self.bot.get_channel(channel_id)
         if channel is None:
@@ -22,7 +24,10 @@ class SteamWishlistTask(commands.Cog):
         state = load_json(STATE_FILE)
         message_id = state.get("steam_wishlist_message_id")
 
-        discounts = await get_wishlist_discounts()
+        discounts = await asyncio.to_thread(
+            get_wishlist_discounts,
+            steam_id
+        )
 
         embed = create_steam_embed(discounts)
 

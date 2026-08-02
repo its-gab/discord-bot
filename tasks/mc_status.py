@@ -6,16 +6,16 @@ from discord.ext import commands, tasks
 from mcstatus import JavaServer
 
 
-class MinecraftStatusTask(commands.Cog):
+class MCStatusTask(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.server = JavaServer.lookup("localhost:25565")
         self.last_state = None
 
-        self.loop_minecraft_status.start()
+        self.loop_mc_status.start()
 
 
-    async def update_minecraft_status(self):
+    async def update_mc_status(self):
         channel_id = int(os.getenv("MC_STATUS_CHANNEL_ID"))
 
         channel = self.bot.get_channel(channel_id)
@@ -43,15 +43,15 @@ class MinecraftStatusTask(commands.Cog):
 
 
     @tasks.loop(seconds=60)
-    async def loop_minecraft_status(self):
-        await self.update_minecraft_status()
+    async def loop_mc_status(self):
+        await self.update_mc_status()
 
 
-    @loop_minecraft_status.before_loop
+    @loop_mc_status.before_loop
     async def before_loop(self):
         await self.bot.wait_until_ready()
-        await self.update_minecraft_status()
+        await self.update_mc_status()
 
 
 async def setup(bot):
-    await bot.add_cog(MinecraftStatusTask(bot))
+    await bot.add_cog(MCStatusTask(bot))
