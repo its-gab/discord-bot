@@ -2,7 +2,6 @@ import discord
 from discord.ext import commands
 from services.server import (
     get_system_uptime,
-    reboot,
     get_cpu_usage,
     get_cpu_temp,
     get_ram,
