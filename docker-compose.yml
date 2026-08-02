@@ -21,4 +21,3 @@ services:
       - STEAM_ID=YOUR_STEAM_ID
       
       - TV_IP=YOUR_SAMSUNG_TV_IP
-    privileged: true
