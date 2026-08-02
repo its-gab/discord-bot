@@ -7,10 +7,10 @@ def create_steam_embed(discounts):
     )
 
     if not discounts:
-        embed.description = "🎉 Nessun gioco è attualmente in sconto."
+        embed.description = "🎉 No games are currently on sale."
     else:
         embed.description = (
-            f"Ci sono **{len(discounts)}** giochi in sconto!\n"
+            f"There are **{len(discounts)}** games on sale!\n"
         )
 
         for game in discounts:
@@ -18,13 +18,13 @@ def create_steam_embed(discounts):
                 name=game["name"],
                 value=(
                     f"💸 **-{game['discount']}%**\n"
-                    f"~~{game['original_price']:.2f}€~~ → **{game['discount_price']:.2f}€**\n"
-                    f"[Apri su Steam](https://store.steampowered.com/app/{game['appid']})"
+                    f"~~{game['original']:.2f}€~~ → **{game['final']:.2f}€**\n"
+                    f"[Open on Steam](https://store.steampowered.com/app/{game['appid']})"
                 ),
                 inline=False
             )
 
-    embed.set_footer(text="Ultimo controllo")
+    embed.set_footer(text="Last checked")
     embed.timestamp = discord.utils.utcnow()
 
     return embed

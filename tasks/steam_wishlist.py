@@ -56,6 +56,10 @@ class SteamWishlistTask(commands.Cog):
     async def before_loop(self):
         await self.bot.wait_until_ready()
         await self.update_wishlist()
-        
+
+    @loop_wishlist_check.error
+    async def loop_wishlist_check_error(self, error):
+        print(f"[SteamWishlistTask] Loop error: {error!r}")
+
 async def setup(bot):
     await bot.add_cog(SteamWishlistTask(bot))

@@ -6,11 +6,18 @@ def get_wishlist_discounts(steam_id):
     try:
         response = requests.get(url, timeout=10)
         response.raise_for_status()
+        wishlist = response.json()
     except requests.RequestException as e:
-        print(f"[Steam Service] Error: {e}")
+        print(f"[Steam Service] Request error: {e}")
+        return []
+    except ValueError as e:
+        print(f"[Steam Service] Invalid JSON response: {e}")
         return []
 
-    wishlist = response.json()
+    if not isinstance(wishlist, dict):
+        print(f"[Steam Service] Unexpected wishlist format: {type(wishlist)} (empty/private wishlist?)")
+        return []
+
     discounts = []
 
     for appid, game in wishlist.items():
