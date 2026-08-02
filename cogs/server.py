@@ -1,6 +1,15 @@
 import discord
 from discord.ext import commands
-from services.server import *
+from services.server import (
+    get_system_uptime,
+    reboot,
+    get_cpu_usage,
+    get_cpu_temp,
+    get_ram,
+    get_disk,
+    get_local_ip,
+    docker_containers
+)
 from utils.formatter import format_uptime
 
 class Server(commands.Cog):
@@ -18,8 +27,8 @@ class Server(commands.Cog):
 
         if action == "uptime":
             await ctx.reply(f"System uptime: {format_uptime(get_system_uptime())}")
-        elif action == "shutdown":
-            await ctx.reply(shutdown())
+        #elif action == "shutdown":
+        #    await ctx.reply(shutdown())
         elif action == "reboot":
             await ctx.reply(reboot())
         elif action == "info":
@@ -101,7 +110,5 @@ class Server(commands.Cog):
             await ctx.reply(text)
     
 
-
-# Setup
 async def setup(bot):
     await bot.add_cog(Server(bot))

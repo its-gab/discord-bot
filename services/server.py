@@ -1,11 +1,12 @@
+import os
 import socket
 import subprocess
-
+import paramiko
 import psutil
 
 
 def get_cpu_usage():
-    return psutil.cpu_percent(interval=1)
+    return psutil.cpu_percent()
 
 
 def get_ram():
@@ -32,7 +33,8 @@ def get_cpu_temp():
     try:
         with open("/sys/class/thermal/thermal_zone0/temp") as f:
             return int(f.read()) / 1000
-    except:
+    except Exception as e:
+        print(f"Error: {e}")
         return None
 
 
@@ -45,7 +47,8 @@ def get_local_ip():
 
         return ip
 
-    except:
+    except Exception as e:
+        print(f"Error: {e}")
         return None
 
 
@@ -55,13 +58,8 @@ def get_system_uptime():
 
 
 def reboot():
-    subprocess.Popen(["sudo", "reboot"])
+    subprocess.Popen(["reboot"])
     return "♻️ Rebooting Raspberry Pi..."
-
-
-def shutdown():
-    subprocess.Popen(["sudo", "shutdown", "-h", "now"])
-    return "🛑 Shutting down Raspberry Pi..."
 
 
 def docker_containers():
@@ -81,5 +79,6 @@ def docker_containers():
 
         return containers
 
-    except:
+    except Exception as e:
+        print(f"Error: {e}")
         return None
