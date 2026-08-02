@@ -1,7 +1,5 @@
-import os
 import socket
 import subprocess
-import paramiko
 import psutil
 
 
