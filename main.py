@@ -4,6 +4,7 @@ from config import bot, DS_TOKEN
 
 COGS = (
     "cogs.admin",
+    "cogs.camera",
     "cogs.events",
     "cogs.fuel",
     "cogs.general",

@@ -6,4 +6,5 @@ pandas
 geopy
 samsungtvws
 psutil
+opencv-python
 mcstatus
