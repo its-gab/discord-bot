@@ -27,10 +27,6 @@ class Server(commands.Cog):
 
         if action == "uptime":
             await ctx.reply(f"System uptime: {format_uptime(get_system_uptime())}")
-        #elif action == "shutdown":
-        #    await ctx.reply(shutdown())
-        elif action == "reboot":
-            await ctx.reply(reboot())
         elif action == "info":
             cpu = get_cpu_usage()
             cpu_temp = get_cpu_temp()

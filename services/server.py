@@ -56,12 +56,6 @@ def get_system_uptime():
     with open("/proc/uptime") as f:
         return int(float(f.readline().split()[0]))
 
-
-def reboot():
-    subprocess.Popen(["reboot"])
-    return "♻️ Rebooting Raspberry Pi..."
-
-
 def docker_containers():
     try:
         output = subprocess.check_output(
