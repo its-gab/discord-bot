@@ -8,6 +8,7 @@ COGS = (
     "cogs.events",
     "cogs.fuel",
     "cogs.general",
+    "cogs.ip",
     "cogs.minecraft",
     "cogs.sensors",
     "cogs.server",

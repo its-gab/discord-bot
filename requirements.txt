@@ -4,6 +4,8 @@ adafruit-circuitpython-dht
 lgpio
 pandas
 geopy
+requests
+shodan
 samsungtvws
 psutil
 opencv-python

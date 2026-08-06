@@ -5,11 +5,13 @@ services:
     restart: unless-stopped
     ports:
       - "25565:25565"
+    privileged: true
     volumes:
       - ./data:/app/data
       - ./minecraft:/app/minecraft
     environment:
       - DISCORD_TOKEN=YOUR_DISCORD_TOKEN
+      - SHODAN_API_KEY=YOUR_SHODAN_API_KEY
 
       - WELCOME_CHANNEL_ID=123456789
       - MC_STATUS_CHANNEL_ID=123456789
@@ -20,4 +22,7 @@ services:
 
       - STEAM_ID=YOUR_STEAM_ID
       
+      - LATITUDE=YOUR_HOME_LATITUDE
+      - LONGITUDE=YOUR_HOME_LONGITUDE
+
       - TV_IP=YOUR_SAMSUNG_TV_IP

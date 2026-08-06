@@ -1,9 +1,10 @@
+import os
 import pandas as pd
 from geopy.distance import geodesic
 from geopy.geocoders import Nominatim
 
-HOME_LAT = 42.99451255660583
-HOME_LON = 12.67093749650644
+HOME_LAT = float(os.getenv("LATITUDE"))
+HOME_LON = float(os.getenv("LONGITUDE"))
 MAX_DISTANCE = 10
 
 PREZZI_URL = "https://www.mimit.gov.it/images/exportCSV/prezzo_alle_8.csv"

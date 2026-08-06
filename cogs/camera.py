@@ -1,8 +1,10 @@
+import os
+import cv2
+import asyncio
 import discord
 from discord.ext import commands
-import cv2
-import os
 from datetime import datetime
+from services.camera import capture_frame
 
 
 class Camera(commands.Cog):
@@ -14,18 +16,9 @@ class Camera(commands.Cog):
     @commands.command()
     async def camera(self, ctx):
 
-        camera = cv2.VideoCapture(0)
-        #camera.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
-        #camera.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
+        frame = await asyncio.to_thread(capture_frame)
 
-        if not camera.isOpened():
-            await ctx.reply("❌ Webcam not found or cannot be opened")
-            return
-
-        ret, frame = camera.read()
-        camera.release()
-
-        if not ret:
+        if frame is None:
             await ctx.reply("❌ Failed to capture image from webcam")
             return
 
