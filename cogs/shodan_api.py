@@ -18,50 +18,41 @@ class ShodanCog(commands.Cog):
 
 
     @commands.command(name="shodan")
-    async def shodan_search(self, ctx, *, query):
+    async def shodan_search(self, ctx, ip):
 
         msg = await ctx.send("🔎 Searching Shodan...")
 
         try:
-            results = await asyncio.to_thread(
-                self.api.search,
-                query
+            result = await asyncio.to_thread(
+                self.api.host,
+                ip
             )
 
-            if results["total"] == 0:
-                await msg.edit(content="❌ No results found")
-                return
-
-
             embed = discord.Embed(
-                title=f"🔎 Shodan: {query}",
-                description=f"Results found: {results['total']}",
+                title=f"🌐 Shodan: {ip}",
                 color=discord.Color.blue()
             )
 
+            embed.add_field(
+                name="🏢 Organization",
+                value=result.get("org", "Unknown"),
+                inline=False
+            )
 
-            for result in results["matches"][:5]:
+            embed.add_field(
+                name="🌍 Country",
+                value=result.get("country_name", "Unknown"),
+                inline=False
+            )
 
-                ip = result.get("ip_str", "N/A")
-                port = result.get("port", "N/A")
-                org = result.get("org", "Unknown")
-                country = result.get("location", {}).get(
-                    "country_name",
-                    "Unknown"
-                )
-
-                embed.add_field(
-                    name=f"🌐 {ip}:{port}",
-                    value=(
-                        f"🏢 {org}\n"
-                        f"🌍 {country}"
-                    ),
-                    inline=False
-                )
-
+            ports = result.get("ports", [])
+            embed.add_field(
+                name="🔌 Ports",
+                value=", ".join(map(str, ports)) if ports else "None",
+                inline=False
+            )
 
             await msg.edit(embed=embed)
-
 
         except shodan.APIError as e:
             await msg.edit(
