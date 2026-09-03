@@ -1,1 +1,9 @@
-.ignore/
+data/
+minecraft/
+
+.env
+
+__pycache__/
+*.pyc
+.venv/
+venv/
