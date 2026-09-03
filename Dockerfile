@@ -4,7 +4,6 @@ WORKDIR /app
 
 RUN apt update && \
     apt install -y \
-        openjdk-25-jre \
         docker.io && \
     rm -rf /var/lib/apt/lists/*
 
