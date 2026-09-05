@@ -61,7 +61,7 @@ def create_container():
 
         "--name", MC_CONTAINER,
 
-        "--restart", "unless-stopped",
+        "--restart", "no",
 
         "-p", "25565:25565",
 
@@ -105,6 +105,11 @@ def create_container():
 
     return None
 
+def ensure_container():
+    if container_exists():
+        return None
+
+    return create_container()
 
 def start_server():
     global mc_start_time
@@ -246,10 +251,3 @@ def server_status():
         return "🟢 Minecraft server is online."
 
     return "🔴 Minecraft server is offline."
-
-
-def accept_eula():
-    return (
-        "📜 Minecraft EULA is enabled.\n"
-        'Docker is using `EULA=TRUE`.'
-    )

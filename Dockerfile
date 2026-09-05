@@ -4,7 +4,9 @@ WORKDIR /app
 
 RUN apt update && \
     apt install -y \
-        docker.io && \
+        docker.io \
+        libgl1 \
+        && \
     rm -rf /var/lib/apt/lists/*
 
 COPY requirements.txt .

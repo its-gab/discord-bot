@@ -28,7 +28,6 @@ class Minecraft(commands.Cog):
             
         action = action.lower()
 
-        # START
         if action == "start":
             message = await ctx.reply(
                 "⏳ Starting Minecraft server..."

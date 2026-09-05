@@ -2,7 +2,7 @@ import asyncio
 import signal
 
 from config import bot, DS_TOKEN
-from services.minecraft import remove_docker
+from services.minecraft import remove_docker, ensure_container
 
 
 COGS = (
@@ -48,7 +48,7 @@ async def main():
             print(result)
         except Exception as e:
             print(f"❌ Failed to stop Minecraft: {e}")
-            
+
         print("👋 Closing Discord bot...")
         await bot.close()
 
@@ -60,7 +60,6 @@ async def main():
         loop.add_signal_handler(signal.SIGTERM, handle_shutdown)
         loop.add_signal_handler(signal.SIGINT, handle_shutdown)
     except NotImplementedError:
-        # Necessario su alcuni sistemi
         signal.signal(
             signal.SIGTERM,
             lambda *_: asyncio.create_task(shutdown())
@@ -70,6 +69,19 @@ async def main():
             lambda *_: asyncio.create_task(shutdown())
         )
 
+    # Minecraft container
+    print("🎮 Checking Minecraft container...")
+
+    try:
+        result = await asyncio.to_thread(ensure_container)
+
+        if result:
+            print(result)
+        else:
+            print("✅ Minecraft container ready.")
+
+    except Exception as e:
+        print(f"❌ Failed to prepare Minecraft container: {e}")
 
     async with bot:
         print("📜 Loading modules...")
@@ -93,6 +105,8 @@ async def main():
 
         print("✅ Tasks loaded!")
         print("🚀 Bot starting...")
+
         await bot.start(DS_TOKEN)
+
 
 asyncio.run(main())
