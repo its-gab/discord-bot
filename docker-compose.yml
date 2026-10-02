@@ -1,8 +1,13 @@
 services:
-  discord-bot:
+  bot:
     build: .
     container_name: discord-bot
     restart: unless-stopped
-    env_file: .env
+
+    env_file:
+      - .env
+
     volumes:
       - ./data:/app/data
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /var/run/docker.sock:/var/run/docker.sock
