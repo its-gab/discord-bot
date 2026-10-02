@@ -1,63 +1,23 @@
-import time
-import threading
-import logging
+import os
+import requests
 
-import board
-import adafruit_dht  # type: ignore
-
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
-
-sensor_data = {
-    "temp": None,
-    "hum": None
-}
-
-sensor_lock = threading.Lock()
-
-
-def read_sensor():
-    dht = None
-
-    try:
-        dht = adafruit_dht.DHT11(board.D4)
-
-        temp = dht.temperature
-        hum = dht.humidity
-
-        if temp is not None and hum is not None:
-            with sensor_lock:
-                sensor_data["temp"] = temp
-                sensor_data["hum"] = hum
-
-            return True
-
-    except Exception as e:
-        logger.error(f"{e}")
-
-    finally:
-        if dht is not None:
-            try:
-                dht.exit()
-            except Exception:
-                logger.error("Failed to exit DHT11 sensor.")
-
-    return False
-
-
-def sensor_loop():
-    while True:
-        read_sensor()
-        time.sleep(5)
+SENSOR_API_URL = os.getenv("SENSOR_API_URL")
 
 
 def get_sensor_data():
-    with sensor_lock:
-        return sensor_data.copy()
+    try:
+        response = requests.get(
+            SENSOR_API_URL,
+            timeout=2
+        )
+        response.raise_for_status()
 
+        data = response.json()
 
-threading.Thread(
-    target=sensor_loop,
-    daemon=True,
-    name="DHT11"
-).start()
+        return {
+            "temperature": data.get("temperature"),
+            "humidity": data.get("humidity"),
+        }
+
+    except (requests.RequestException, ValueError):
+        return None
