@@ -1,5 +1,5 @@
 import subprocess
-
+import logging
 
 def docker_command(*args):
     try:
@@ -16,7 +16,7 @@ def docker_command(*args):
         return None
 
     except Exception as e:
-        print(f"Docker error: {e}")
+        logging.error(f"Docker: {e}")
         return None
 
 def container_exists(name: str) -> bool:
