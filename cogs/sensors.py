@@ -16,7 +16,7 @@ class Sensors(commands.Cog):
         name="temperature",
         description="Check the Raspberry Pi temperature and humidity."
     )
-    @allowed_channel("COMMANDS_CHANNEL_ID")
+    @allowed_channel("ADMIN_COMMANDS_CHANNEL_ID")
     async def temperature(self, interaction: discord.Interaction):
 
         await interaction.response.defer()

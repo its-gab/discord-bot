@@ -11,7 +11,7 @@ from services.server import (
     get_local_ip,
     docker_containers
 )
-from utils.formatter import format_uptime
+from services.utils import format_uptime
 from services.permissions import allowed_channel, owner_only
 
 
