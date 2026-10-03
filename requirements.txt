@@ -1,4 +1,3 @@
 requests
 discord.py
-adafruit-blinka
-adafruit-circuitpython-dht
+psutil
