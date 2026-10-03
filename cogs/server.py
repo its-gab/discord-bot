@@ -115,26 +115,42 @@ class Server(commands.Cog):
     async def server_docker(self, interaction: discord.Interaction):
 
         containers = docker_containers()
-
+        
         if containers is None:
-            await interaction.response.send_message(
-                "❌ Docker not installed.",
-                ephemeral=True
-            )
+            await ctx.reply("❌ Unable to connect to Docker.")
             return
 
         if len(containers) == 0:
-            await interaction.response.send_message(
-                "📦 No running containers."
-            )
+            await ctx.reply("📦 No running containers.")
             return
 
-        text = "📦 **Running containers**\n\n"
+        embed = discord.Embed(
+            title="📦 Docker Containers",
+            description=f"**{len(containers)} containers running**",
+            color=discord.Color.green()
+        )
 
         for name, status in containers:
-            text += f"🟢 **{name}**\n{status}\n\n"
+            status_lower = status.lower()
 
-        await interaction.response.send_message(text)
+            if "(healthy)" in status_lower:
+                status_text = status.replace("(healthy)", "").strip()
+                status_text += " · `Healthy`"
+            else:
+                status_text = status
+
+            embed.add_field(
+                name=f"🟢 {name}",
+                value=f"`{status_text}`",
+                inline=False
+            )
+
+        embed.set_footer(text="Docker • Raspberry Pi")
+
+        await ctx.reply(
+            embed=embed,
+            mention_author=False
+        )
 
 
 async def setup(bot):
