@@ -29,7 +29,7 @@ class Server(commands.Cog):
         name="uptime",
         description="Show the Raspberry Pi system uptime."
     )
-    @allowed_channel("COMMANDS_CHANNEL_ID")
+    @allowed_channel("ADMIN_COMMANDS_CHANNEL_ID")
     @owner_only()
     async def server_uptime(self, interaction: discord.Interaction):
         uptime = format_uptime(get_system_uptime())
@@ -42,7 +42,7 @@ class Server(commands.Cog):
         name="info",
         description="Show Raspberry Pi information."
     )
-    @allowed_channel("COMMANDS_CHANNEL_ID")
+    @allowed_channel("ADMIN_COMMANDS_CHANNEL_ID")
     @owner_only()
     async def server_info(self, interaction: discord.Interaction):
 
@@ -110,7 +110,7 @@ class Server(commands.Cog):
         name="docker",
         description="Show running Docker containers."
     )
-    @allowed_channel("COMMANDS_CHANNEL_ID")
+    @allowed_channel("ADMIN_COMMANDS_CHANNEL_ID")
     @owner_only()
     async def server_docker(self, interaction: discord.Interaction):
 
