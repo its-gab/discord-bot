@@ -113,15 +113,19 @@ class Server(commands.Cog):
     @allowed_channel("ADMIN_COMMANDS_CHANNEL_ID")
     @owner_only()
     async def server_docker(self, interaction: discord.Interaction):
-
         containers = docker_containers()
-        
+
         if containers is None:
-            await ctx.reply("❌ Unable to connect to Docker.")
+            await interaction.response.send_message(
+                "❌ Unable to connect to Docker.",
+                ephemeral=True
+            )
             return
 
         if len(containers) == 0:
-            await ctx.reply("📦 No running containers.")
+            await interaction.response.send_message(
+                "📦 No running containers."
+            )
             return
 
         embed = discord.Embed(
@@ -131,11 +135,17 @@ class Server(commands.Cog):
         )
 
         for name, status in containers:
+
             status_lower = status.lower()
 
             if "(healthy)" in status_lower:
-                status_text = status.replace("(healthy)", "").strip()
+                status_text = status.replace(
+                    "(healthy)",
+                    ""
+                ).strip()
+
                 status_text += " · `Healthy`"
+
             else:
                 status_text = status
 
@@ -145,11 +155,12 @@ class Server(commands.Cog):
                 inline=False
             )
 
-        embed.set_footer(text="Docker • Raspberry Pi")
+        embed.set_footer(
+            text="Docker • Raspberry Pi"
+        )
 
-        await ctx.reply(
-            embed=embed,
-            mention_author=False
+        await interaction.response.send_message(
+            embed=embed
         )
 
 
