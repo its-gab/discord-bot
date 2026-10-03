@@ -46,7 +46,7 @@ def create_minecraft_container():
 
         "-p", "25565:25565",
 
-        "-e", "VERSION=26.1.2",
+        "-e", "VERSION=26.2",
         "-e", "TYPE=VANILLA",
         "-e", "MEMORY=4G",
         "-e", "MOTD=My Minecraft Server",
